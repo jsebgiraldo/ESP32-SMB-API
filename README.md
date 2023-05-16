@@ -23,10 +23,6 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
   <h3 align="center">SMB Client ESP32</h3>
 
   <p align="center">
@@ -185,9 +181,10 @@ Don't forget to give the project a star! Thanks again!
 
 Juan Sebastian Giraldo Duque - jsgiraldod@hotmail.com
 
-Linkedin contact: https://www.linkedin.com/in/juan-sebastian-giraldo-duque-25301718b/
+Linkedin contact: [https://www.linkedin.com/in/juan-sebastian-giraldo-duque-25301718b/]
+(https://www.linkedin.com/in/juan-sebastian-giraldo-duque-25301718b/)
 
-Project Link: [https://github.com/your_username/repo_name](https://github.com/jsebgiraldo/ESP32-SMB-API)
+Project Link: [https://github.com/jsebgiraldo/ESP32-SMB-API/tree/main](https://github.com/jsebgiraldo/ESP32-SMB-API/tree/main)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
