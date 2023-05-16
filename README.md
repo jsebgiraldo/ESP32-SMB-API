@@ -181,8 +181,7 @@ Don't forget to give the project a star! Thanks again!
 
 Juan Sebastian Giraldo Duque - jsgiraldod@hotmail.com
 
-Linkedin contact: [https://www.linkedin.com/in/juan-sebastian-giraldo-duque-25301718b/]
-(https://www.linkedin.com/in/juan-sebastian-giraldo-duque-25301718b/)
+Linkedin contact: [https://www.linkedin.com/in/juan-sebastian-giraldo-duque-25301718b/](https://www.linkedin.com/in/juan-sebastian-giraldo-duque-25301718b/)
 
 Project Link: [https://github.com/jsebgiraldo/ESP32-SMB-API/tree/main](https://github.com/jsebgiraldo/ESP32-SMB-API/tree/main)
 
