@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>ESP32 Admin</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+    <script src='jquery-3.3.1.min.js'></script>
+    <script async src="app.js"></script>
+</head>
+
+<body>
+
+
+
+
+
+    <div class="card">
+
+        <div id="OTA">
+            <h2>Firmware Update</h2>
+            <hr>
+            <label id="latest_firmware_label">Latest Firmware: </label>
+            <div id="latest_firmware"></div>
+            <br>
+            <input type="file" id="selected_file" accept=".bin" style="display: none;" onchange="getFileInfo()" />
+            <div class="buttons">
+                <button onclick="document.getElementById('selected_file').click();"><span class="button_top" name="door_button">Select File</span></button>
+                <button onclick="updateFirmware()"><span class="button_top" name="door_button">Update Firmware</span></button>
+            </div>
+            <h4 id="file_info"></h4>
+            <h4 id="ota_update_status"></h4>
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div id="WiFiConnect">
+            <h2>WiFi Connect</h2>
+            <hr>
+            <section>
+                <input id="connect_ssid" type="text" maxlength="32" placeholder="SSID" value="">
+                <input id="connect_pass" type="password" maxlength="64" placeholder="Password" value="">
+                <input type="checkbox" onclick="showPassword()" style="display: inline;">
+            </section>
+            <br>
+            <div class="buttons">
+                <button id="connect_wifi"><span class="button_top">Connect</span></button>
+                <button id="disconnect_wifi"><span class="button_top">Disconnect</span></button>
+            </div>
+
+            <div id="wifi_connect_credentials_errors"></div>
+            <h4 id="wifi_connect_status"></h4>
+        </div>
+
+    </div>
+
+
+    <div class="card">
+        <h1>SMB Dashboard</h1>
+
+        <form id="catForm" action="/cat" method="post">
+
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br><br>
+
+            <label for="filepath">File Path:</label>
+            <input type="text" id="filepath" name="filepath" required><br>
+
+            <input type="submit" value="View File">
+        </form>
+
+        <div class="card" id="result"></div>
+    </div>
+
+
+
+
+
+</body>
+
+</html>
