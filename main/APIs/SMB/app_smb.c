@@ -11,6 +11,8 @@
 
 #include "esp_ota_ops.h"
 
+#include "app_spiffs.h"
+
 static const char *TAG = "SMB";
 
 // Used for cat function
@@ -36,6 +38,11 @@ void app_smb_set_user(char *user)
     if(user != NULL) smb_config->user = user;
 }
 
+void app_smb_set_host(char *host)
+{
+    if(host != NULL) smb_config->host = host;
+}
+
 void app_smb_init(void)
 {
     // Allocate memory for the SMB configuration
@@ -44,6 +51,7 @@ void app_smb_init(void)
 
     app_smb_set_user("none");
     app_smb_set_password("none");
+	app_smb_set_host("0.0.0.0");
 }
 
 esp_err_t app_smb_ota(char*path)
@@ -69,11 +77,8 @@ esp_err_t app_smb_ota(char*path)
 		return ESP_FAIL;
 	}
 
-    tcpip_adapter_ip_info_t ip_info;
-    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
-
 	char smburl[64];
-    sprintf(smburl, "smb://%s@%s/%s", smb_config->user, ip4addr_ntoa(&ip_info.gw), path);
+    sprintf(smburl, "smb://%s@%s/%s", smb_config->user, smb_config->host, path);
 	ESP_LOGI(TAG, "smburl=%s", smburl);
 
 	smb2_set_password(smb2, smb_config->password);
@@ -147,6 +152,90 @@ esp_err_t app_smb_ota(char*path)
     return err;
 }
 
+esp_err_t app_smb_get(char*path)
+{
+	smb_config_t *smb_config = app_smb_get_config();
+    if (smb_config == NULL) {
+		ESP_LOGE(TAG, "Failed to get smb config");
+		return ESP_FAIL;
+	}
+
+	struct smb2_context *smb2;
+	struct smb2_url *url;
+	struct smb2fh *fh;
+	int count;
+
+	memset(buf,0x00,MAXBUF);
+
+	smb2 = smb2_init_context();
+	if (smb2 == NULL) {
+		ESP_LOGE(TAG, "Failed to init context");
+		return ESP_FAIL;
+	}
+
+	char smburl[64];
+    sprintf(smburl, "smb://%s@%s/%s", smb_config->user, smb_config->host, path);
+	ESP_LOGI(TAG, "smburl=%s", smburl);
+
+	smb2_set_password(smb2, smb_config->password);
+
+
+	url = smb2_parse_url(smb2, smburl);
+	if (url == NULL) {
+		ESP_LOGE(TAG, "Failed to parse url: %s", smb2_get_error(smb2));
+		return ESP_FAIL;
+	}
+
+	smb2_set_security_mode(smb2, SMB2_NEGOTIATE_SIGNING_ENABLED);
+
+	if (smb2_connect_share(smb2, url->server, url->share, url->user) < 0) {
+		ESP_LOGE(TAG, "smb2_connect_share failed. %s", smb2_get_error(smb2));
+		return ESP_FAIL;
+	}
+
+	ESP_LOGI(TAG, "url->path=%s", url->path);
+	fh = smb2_open(smb2, url->path, O_RDONLY);
+	if (fh == NULL) {
+		ESP_LOGE(TAG, "smb2_open failed. %s", smb2_get_error(smb2));
+		while(1){ vTaskDelay(1); }
+	}
+
+	FILE *fd = NULL;
+	char path_file[FILE_PATH_MAX];
+	sprintf(path_file,"%s/%s",FILE_SYSTEM_BASE_PATH,url->path);
+	fd = fopen(path_file, "w");
+    if (!fd) {
+        ESP_LOGE(TAG, "Failed to create file : %s", path_file);
+        return ESP_FAIL;
+    }
+
+	while ((count = smb2_pread(smb2, fh, buf, MAXBUF, pos)) != 0) {
+		if (count == -EAGAIN) {
+			continue;
+		}
+		if (count < 0) {
+			ESP_LOGE(TAG, "Failed to read file. %s", smb2_get_error(smb2));
+			break;
+		}
+		ESP_LOGI(TAG,"GET in progress");
+		//write(0, buf, count);
+		fprintf(fd, (char *)buf);
+		pos += count;
+	};
+
+	/* Close file upon upload completion */
+    fclose(fd);
+    ESP_LOGI(TAG, "File reception complete");
+
+	smb2_close(smb2, fh);
+	smb2_disconnect_share(smb2);
+	smb2_destroy_url(url);
+	smb2_destroy_context(smb2);
+
+	pos = 0;
+    return ESP_OK;
+}
+
 const char *app_smb_ls(char *path)
 {
 
@@ -168,11 +257,8 @@ const char *app_smb_ls(char *path)
 		return NULL;
 	}
 
-    tcpip_adapter_ip_info_t ip_info;
-    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
-
 	char smburl[64];
-    sprintf(smburl, "smb://%s@%s/%s", smb_config->user, ip4addr_ntoa(&ip_info.gw), path);
+    sprintf(smburl, "smb://%s@%s/%s", smb_config->user,smb_config->host, path);
 	ESP_LOGI(TAG, "smburl=%s", smburl);
 
 	smb2_set_password(smb2, smb_config->password);
@@ -197,8 +283,8 @@ const char *app_smb_ls(char *path)
 		return smb2_get_error(smb2);
 	}
 
-    char ls_content[255];
-    char ls_content_temp[50];
+    char ls_content_temp[255];
+	memset(buf,0x00,MAXBUF);
 
 	while ((ent = smb2_readdir(smb2, dir))) {
 		char *type;
@@ -218,10 +304,9 @@ const char *app_smb_ls(char *path)
 			break;
 		}
 
-		printf("%-9s %-20s\n", type, ent->name);
-        memset(ls_content_temp,0x00,sizeof(ls_content_temp));
+		//printf("%-9s %-20s\n", type, ent->name);
         sprintf(ls_content_temp,"%-9s %-20s\n", type, ent->name);
-        strcat(ls_content,ls_content_temp);
+        strcat((char *)buf,ls_content_temp);
 
 		if (ent->st.smb2_type == SMB2_TYPE_LINK) {
 			char buf[256];
@@ -242,6 +327,6 @@ const char *app_smb_ls(char *path)
 	smb2_destroy_url(url);
 	smb2_destroy_context(smb2);
 
-    const char *return_str = ls_content;
+    const char *return_str = (char *)buf;
     return return_str;
 }

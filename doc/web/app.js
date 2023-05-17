@@ -232,12 +232,16 @@ document.getElementById("catForm").addEventListener("submit", function(event) {
     var filepathValue = document.getElementById("filepath").value;
     var userValue = document.getElementById("username").value;
     var passValue = document.getElementById("password").value;
+    var ipValue = document.getElementById("ip").value;
+    var operationValue = document.getElementById("Operation").value;
 
     // Make to JSON object
     var data = {
         filepath: filepathValue,
         username: userValue,
         password: passValue,
+        host: ipValue,
+        operation: operationValue,
     };
 
     // Convert object to JSON
@@ -245,7 +249,7 @@ document.getElementById("catForm").addEventListener("submit", function(event) {
 
     // create and send request to server
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/smb"); // URL Server
+    xhr.open("POST", "/smb-post"); // URL Server
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onload = function() {
         if (xhr.status === 200) {

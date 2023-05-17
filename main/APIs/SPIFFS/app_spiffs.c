@@ -200,7 +200,7 @@ esp_err_t view_get_handler(httpd_req_t *req)
 {
     char filepath[FILE_PATH_MAX];
     const char *filename = get_path_from_uri(filepath, ((struct file_server_data *)req->user_ctx)->base_path,
-                                             req->uri + sizeof("/view")-1, sizeof(filepath));
+                                             req->uri + sizeof("/spiffs")-1, sizeof(filepath));
 
     if (!filename) {
         ESP_LOGE(TAG, "Filename is too long");
@@ -318,7 +318,7 @@ esp_err_t upload_post_handler(httpd_req_t *req)
 
     /* Redirect onto root to see the updated file list */
     httpd_resp_set_status(req, "303 See Other");
-    httpd_resp_set_hdr(req, "Location", "/view/");
+    httpd_resp_set_hdr(req, "Location", "/spiffs/");
 #ifdef CONFIG_EXAMPLE_HTTPD_CONN_CLOSE_HEADER
     httpd_resp_set_hdr(req, "Connection", "close");
 #endif
@@ -418,7 +418,7 @@ esp_err_t delete_post_handler(httpd_req_t *req)
     /* Skip leading "/delete" from URI to get filename */
     /* Note sizeof() counts NULL termination hence the -1 */
     const char *filename = get_path_from_uri(filepath, ((struct file_server_data *)req->user_ctx)->base_path,
-                                             req->uri  + sizeof("/delete/view") - 1, sizeof(filepath));
+                                             req->uri  + sizeof("/delete/spiffs") - 1, sizeof(filepath));
     if (!filename) {
         /* Respond with 500 Internal Server Error */
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Filename too long");
@@ -445,7 +445,7 @@ esp_err_t delete_post_handler(httpd_req_t *req)
 
     /* Redirect onto root to see the updated file list */
     httpd_resp_set_status(req, "303 See Other");
-    httpd_resp_set_hdr(req, "Location", "/view/");
+    httpd_resp_set_hdr(req, "Location", "/spiffs/");
 #ifdef CONFIG_EXAMPLE_HTTPD_CONN_CLOSE_HEADER
     httpd_resp_set_hdr(req, "Connection", "close");
 #endif

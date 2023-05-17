@@ -21,6 +21,7 @@ set(files
         "../doc/web/app.js"
         "../doc/web/favicon.ico"
         "../doc/web/index.html"
+        "../doc/web/smb.html"
         "../doc/web/upload_script.html"
         "../doc/web/jquery-3.3.1.min.js"
 )

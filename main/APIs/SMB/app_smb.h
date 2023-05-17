@@ -26,16 +26,19 @@
 typedef struct {
     char *user;
     char *password;
+    char *host;
 }smb_config_t;
 
 void app_smb_init(void);
 
 void app_smb_set_password(char *pass);
 void app_smb_set_user(char *user);
+void app_smb_set_host(char *host);
 
 smb_config_t* app_smb_get_config(void);
 
 const char *app_smb_ls(char *path);
+esp_err_t app_smb_get(char*path);
 esp_err_t app_smb_ota(char *path);
 
 #endif /* APP_SMB_H */
