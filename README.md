@@ -158,7 +158,7 @@ httpd_uri_t index_html = {
 httpd_register_uri_handler(http_server_handle, &index_html);
 ```
 
-![index](/doc/img/index.PNG)
+![index](/doc/img/index.png)
 
 * **SMB Dashboard: ** This page has a form for using the SMB API.
 
@@ -173,7 +173,7 @@ httpd_uri_t smb_html = {
 httpd_register_uri_handler(http_server_handle, &smb_html);
 ```
 
-![smb](/doc/img/smb.PNG)
+![smb](/doc/img/smb.png)
 
 * **File Server: ** This page provides all the tools to manage the SPIFFS partition contained in the ESP
 
@@ -188,7 +188,7 @@ httpd_uri_t spiffs_view = {
 httpd_register_uri_handler(http_server_handle, &spiffs_view);
 ```
 
-![spiffs](/doc/img/spiffs.PNG)
+![spiffs](/doc/img/spiffs.png)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
