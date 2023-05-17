@@ -76,6 +76,8 @@ extern const uint8_t jquery_3_3_1_min_js_start[]	asm("_binary_jquery_3_3_1_min_j
 extern const uint8_t jquery_3_3_1_min_js_end[]		asm("_binary_jquery_3_3_1_min_js_end");
 extern const uint8_t index_html_start[]				asm("_binary_index_html_start");
 extern const uint8_t index_html_end[]				asm("_binary_index_html_end");
+extern const uint8_t smb_html_start[]				asm("_binary_smb_html_start");
+extern const uint8_t smb_html_end[]					asm("_binary_smb_html_end");
 extern const uint8_t style_css_start[]				asm("_binary_style_css_start");
 extern const uint8_t style_css_end[]				asm("_binary_style_css_end");
 extern const uint8_t app_js_start[]					asm("_binary_app_js_start");
@@ -216,6 +218,22 @@ static esp_err_t http_server_index_html_handler(httpd_req_t *req)
 
 	httpd_resp_set_type(req, "text/html");
 	httpd_resp_send(req, (const char *)index_html_start, index_html_end - index_html_start);
+
+	return ESP_OK;
+}
+
+/**
+ * Sends the smb.html page.
+ * @param req HTTP request for which the uri needs to be handled.
+ * @return ESP_OK
+ */
+static esp_err_t http_server_smb_html_handler(httpd_req_t *req)
+{
+	
+	HTTP_DEBUG("smb.html requested");
+
+	httpd_resp_set_type(req, "text/html");
+	httpd_resp_send(req, (const char *)smb_html_start, smb_html_end - smb_html_start);
 
 	return ESP_OK;
 }
@@ -550,30 +568,57 @@ static esp_err_t form_post_smb_handler(httpd_req_t *req) {
     cJSON *username = cJSON_GetObjectItem(json, "username");
     cJSON *password = cJSON_GetObjectItem(json, "password");
     cJSON *filepath = cJSON_GetObjectItem(json, "filepath");
+	cJSON *host = cJSON_GetObjectItem(json, "host");
+	cJSON *operation = cJSON_GetObjectItem(json, "operation");
 
-    if (username && password && filepath)
+    if (username && password && filepath && host && operation)
     {
         // Aquí puedes utilizar los valores extraídos del JSON según sea necesario
         // ...
 
-		HTTP_DEBUG("username: %s, password: %s, filepath: %s\r\n",username->valuestring,password->valuestring,filepath->valuestring);
+		HTTP_DEBUG("username: %s, password: %s, filepath: %s, host: %s, operation: %s\r\n",username->valuestring,password->valuestring,filepath->valuestring,host->valuestring,operation->valuestring);
 
         // Enviar una respuesta al cliente
 
+		
 		app_smb_set_password(password->valuestring);
 		app_smb_set_user(username->valuestring);
-
-        esp_err_t err = app_smb_ota(filepath->valuestring);
+		app_smb_set_host(host->valuestring);
 
 		char *response;
-		if(err == ESP_OK)
+
+		if(strcmp(operation->valuestring, "ls") == 0)
 		{
-			response = "OTA Success";
-			flash_successful = true;
-		}else{
-			response = "OTA Fail";
+			response = (char *)app_smb_ls(filepath->valuestring);
 		}
-	
+		else if(strcmp(operation->valuestring, "get") == 0)
+		{
+			esp_err_t err = app_smb_get(filepath->valuestring);
+			if(err == ESP_OK)
+			{
+				response = "GET SUCCESS";
+			}else{
+				response = "GET FAIL";
+			}
+
+		}
+		else if(strcmp(operation->valuestring, "ota") == 0)
+		{
+			esp_err_t err = app_smb_ota(filepath->valuestring);
+			if(err == ESP_OK)
+			{
+				response = "OTA SUCCESS";
+				flash_successful = true;
+			}else{
+				response = "OTA FAIL";
+			}
+		}
+		else
+		{
+			response = "Operation Fail";
+		}
+
+		HTTP_DEBUG("RESPONSE: %s",response);
         httpd_resp_send(req, response, strlen(response));
     }
     else
@@ -586,7 +631,7 @@ static esp_err_t form_post_smb_handler(httpd_req_t *req) {
     free(post_data);
     cJSON_Delete(json);
 
-		// We won't update the global variables throughout the file, so send the message about the status
+	// We won't update the global variables throughout the file, so send the message about the status
 	if (flash_successful) { http_server_monitor_send_message(HTTP_MSG_OTA_UPDATE_SUCCESSFUL); } else { http_server_monitor_send_message(HTTP_MSG_OTA_UPDATE_FAILED); }
 
     return ESP_OK;
@@ -785,7 +830,7 @@ static httpd_handle_t http_server_configure(void)
 
 		// register wifiConnectInfo.json handler
 		httpd_uri_t spiffs_view = {
-				.uri = "/view/",
+				.uri = "/spiffs/",
 				.method = HTTP_GET,
 				.handler = view_get_handler,
 				.user_ctx = server_data
@@ -793,9 +838,18 @@ static httpd_handle_t http_server_configure(void)
 		httpd_register_uri_handler(http_server_handle, &spiffs_view);
 #endif
 
+		// register smb.html handler
+		httpd_uri_t smb_html = {
+				.uri = "/smb",
+				.method = HTTP_GET,
+				.handler = http_server_smb_html_handler,
+				.user_ctx = NULL
+		};
+		httpd_register_uri_handler(http_server_handle, &smb_html);
+
 		// register wifiConnectInfo.json handler
 		httpd_uri_t http_smb_handler = {
-				.uri = "/smb",
+				.uri = "/smb-post",
 				.method = HTTP_POST,
 				.handler = form_post_smb_handler,
 				.user_ctx = server_data

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>ESP32 Admin</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+    <script src='jquery-3.3.1.min.js'></script>
+    <script async src="app.js"></script>
+</head>
+
+<body>
+
+    <div class="card">
+        <h1>SMB Dashboard</h1>
+
+        <form id="catForm" action="/cat" method="post">
+
+
+
+
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="User" required>
+
+            <label for="ip">Host</label>
+            <input type="text" id="ip" name="ip" placeholder="IP" required>
+
+            <label for="filepath">Path</label>
+            <input type="text" id="filepath" name="filepath" placeholder="FilePath" required><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Pass" required>
+
+            <hr>
+
+            <label for="operation">Operation:</label>
+            <select id="Operation" name="Operation">
+                <option value="ls">List File (LS)</option>
+                <option value="get">Download (GET)</option>
+                <option value="ota">Over The Air (OTA) </option>
+            </select>
+
+            <hr>
+
+            <div style="display: flex; align-items: center;">
+                <input type="submit" value="Execute">
+                <div style="width: 100%;" class="card" id="result"></div>
+            </div>
+
+        </form>
+
+    </div>
+
+
+
+
+
+</body>
+
+</html>
